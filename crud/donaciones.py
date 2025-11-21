@@ -1,56 +1,31 @@
-from models import Banco, Inventario, Donacion
+from models import Donacion, Banco
+from sqlalchemy.orm import Session
 
-def asignar_banco(db, alimento, cantidad):
+
+def registrar_donacion(db: Session, data):
     bancos = db.query(Banco).all()
-    mejor_banco = None
-    menor_cantidad = 9999999
 
     for banco in bancos:
-        inv = (
-            db.query(Inventario)
-            .filter(Inventario.banco_id == banco.id, Inventario.alimento == alimento)
-            .first()
-        )
+        if data.tipo not in banco.categorias:
+            continue
 
-        cant = inv.cantidad if inv else 0
+        categoria = banco.categorias[data.tipo]
 
-        if cant < banco.capacidad_total and cant < menor_cantidad:
-            menor_cantidad = cant
-            mejor_banco = banco
+        if categoria["usado"] + data.cantidad <= categoria["capacidad"]:
+            categoria["usado"] += data.cantidad
+            banco.categorias = banco.categorias
 
-    return mejor_banco
+            nueva = Donacion(
+                usuario_id=data.usuario_id,
+                alimento=data.alimento,
+                cantidad=data.cantidad,
+                banco_asignado=banco.id
+            )
 
-def registrar_donacion(db, donacion):
-    banco = asignar_banco(db, donacion.alimento, donacion.cantidad)
+            db.add(nueva)
+            db.commit()
+            db.refresh(nueva)
 
-    if not banco:
-        return None
+            return nueva, banco
 
-    inv = (
-        db.query(Inventario)
-        .filter(Inventario.banco_id == banco.id, Inventario.alimento == donacion.alimento)
-        .first()
-    )
-
-    if inv:
-        inv.cantidad += donacion.cantidad
-    else:
-        inv = Inventario(
-            banco_id=banco.id,
-            alimento=donacion.alimento,
-            cantidad=donacion.cantidad
-        )
-        db.add(inv)
-
-    nueva = Donacion(
-        usuario_id=donacion.usuario_id,
-        alimento=donacion.alimento,
-        cantidad=donacion.cantidad,
-        banco_asignado=banco.id
-    )
-
-    db.add(nueva)
-    db.commit()
-    db.refresh(nueva)
-
-    return nueva, banco
+    return None

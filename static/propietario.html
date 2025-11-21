@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco de Alimentos</title>
+    <link rel="stylesheet" href="/static/estilos.css">
+</head>
+
+<body>
+   
+    <a href="/"><button>🏠 Volver al Inicio</button></a>
+
+    <header>
+        <nav class="nav">
+            <h2 class="logo">🏪 Banco de Alimentos</h2>
+            <ul>
+                <a href="/propietario">Panel Propietario</a>
+
+
+            </ul>
+        </nav>
+    </header>
+
+    <section class="form-section">
+        
+        <h2>Registrar Banco</h2>
+
+        <form id="form-banco">
+            <input type="text" id="banco-nombre" placeholder="Nombre del banco" required>
+            <input type="text" id="banco-direccion" placeholder="Dirección" required>
+
+            <button class="btn btn-primary">Registrar Banco</button>
+        </form>
+
+        <h3>Limpiar Inventario</h3>
+
+        <form id="form-limpiar">
+            <input type="number" id="banco-id" placeholder="ID del Banco" required>
+            <button class="btn btn-secondary">Limpiar</button>
+        </form>
+
+        <p id="respuesta-prop"></p>
+
+    </section>
+    
+     <script src="/static/app.js"></script>
+
+    <script>
+     document.getElementById("form-limpiar").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const id = parseInt(document.getElementById("banco-id").value);
+
+        const res = await fetch(`/bancos/${id}/limpiar`, {
+            method: "DELETE"
+        });
+
+        const data = await res.json();
+        document.getElementById("respuesta-prop").innerText = data.mensaje;
+    });
+    </script>
+   
+</body>
+</html>

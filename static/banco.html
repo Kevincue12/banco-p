@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Banco</title>
+    <link rel="stylesheet" href="/static/estilos.css">
+</head>
+<body>
+    <header>
+        <nav class="nav">
+            <h2 class="logo">🏦 Registrar Banco</h2>
+            <ul>
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/bancos">Ver Bancos</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="form-section">
+        <h2>Nuevo Banco</h2>
+        <form id="form-banco">
+            <input type="text" id="nombre" placeholder="Nombre del banco" required>
+            <input type="text" id="direccion" placeholder="Dirección" required>
+            <input type="number" id="capacidad_total" placeholder="Capacidad total" required>
+
+            <h3>Capacidades por categoría</h3>
+            <input type="number" id="frutas" placeholder="Capacidad de frutas" required>
+            <input type="number" id="granos" placeholder="Capacidad de granos" required>
+            <input type="number" id="enlatados" placeholder="Capacidad de enlatados" required>
+
+            <button type="submit" class="btn btn-primary">Registrar Banco</button>
+        </form>
+
+        <p id="respuesta-banco"></p>
+    </section>
+
+    <script>
+        document.getElementById("form-banco").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const nombre = document.getElementById("nombre").value;
+            const direccion = document.getElementById("direccion").value;
+            const capacidad_total = parseInt(document.getElementById("capacidad_total").value);
+            const frutas = parseInt(document.getElementById("frutas").value);
+            const granos = parseInt(document.getElementById("granos").value);
+            const enlatados = parseInt(document.getElementById("enlatados").value);
+
+            const categorias = {
+                frutas: { capacidad: frutas, usado: 0 },
+                granos: { capacidad: granos, usado: 0 },
+                enlatados: { capacidad: enlatados, usado: 0 }
+            };
+
+            try {
+                const res = await fetch("/bancos/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        nombre: nombre,
+                        direccion: direccion,
+                        capacidad_total: capacidad_total,
+                        categorias: categorias
+                    })
+                });
+
+                const data = await res.json();
+                document.getElementById("respuesta-banco").innerText = data.mensaje || "Error al registrar banco";
+
+                if (data.mensaje && data.mensaje.includes("Banco registrado")) {
+                    setTimeout(() => {
+                        window.location.href = "/bancos";
+                    }, 2000);
+                }
+            } catch (error) {
+                document.getElementById("respuesta-banco").innerText = "Error de conexión con el servidor";
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donar al Banco de Alimentos</title>
+    <link rel="stylesheet" href="/static/estilos.css">
+</head>
+<body>
+    <!-- Botón para volver al inicio -->
+    <a href="/"><button class="btn">🏠 Volver al Inicio</button></a>
+
+    <header>
+        <nav class="nav">
+            <h2 class="logo">🍎 Donaciones</h2>
+            <ul>
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/banco">Administrador Banco</a></li>
+                <li><a href="/bancos">Ver Bancos</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="form-section">
+        <h2>Registrar Donación</h2>
+
+        <!-- Paso 1: Datos de la donación -->
+        <form id="form-donante">
+            <input type="text" placeholder="Tu nombre" id="nombre" required>
+
+            <div id="items-container">
+                <div class="item">
+                    <select class="tipo" required>
+                        <option value="">Seleccionar categoría</option>
+                        <option value="frutas">Frutas</option>
+                        <option value="granos">Granos</option>
+                        <option value="enlatados">Enlatados</option>
+                    </select>
+                    <input type="number" class="cantidad" placeholder="Cantidad" required>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-secondary" onclick="agregarItem()">➕ Agregar otro ítem</button>
+            <button type="submit" class="btn btn-primary">Buscar Bancos Disponibles</button>
+            <button type="button" class="btn btn-success" onclick="confirmarLoteGreedy()">Asignar automáticamente (Greedy)</button>
+        </form>
+
+        <!-- Paso 2: Mostrar bancos disponibles -->
+        <div id="bancos-disponibles"></div>
+
+        <!-- Paso 3: Confirmación -->
+        <div id="respuesta-donante" class="mensaje-creativo"></div>
+    </section>
+
+    <script>
+    // Agregar más ítems al formulario
+    function agregarItem() {
+        const container = document.getElementById("items-container");
+        const div = document.createElement("div");
+        div.classList.add("item");
+        div.innerHTML = `
+            <select class="tipo" required>
+                <option value="">Seleccionar categoría</option>
+                <option value="frutas">Frutas</option>
+                <option value="granos">Granos</option>
+                <option value="enlatados">Enlatados</option>
+            </select>
+            <input type="number" class="cantidad" placeholder="Cantidad" required>
+        `;
+        container.appendChild(div);
+    }
+
+    // Paso 1: Buscar bancos disponibles para el lote
+    document.getElementById("form-donante").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const nombre = document.getElementById("nombre").value;
+        const items = [];
+        document.querySelectorAll("#items-container .item").forEach(div => {
+            const tipo = div.querySelector(".tipo").value;
+            const cantidad = parseInt(div.querySelector(".cantidad").value);
+            items.push({ tipo, cantidad });
+        });
+
+        try {
+            const res = await fetch("/donar/opciones/lote", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre: nombre, donaciones: items })
+            });
+
+            const bancos = await res.json();
+
+            if (bancos.length === 0) {
+                document.getElementById("bancos-disponibles").innerHTML =
+                    "<p>No hay bancos con espacio suficiente para estas donaciones.</p>";
+                return;
+            }
+
+            let lista = "<h3>Bancos disponibles:</h3><ul>";
+            bancos.forEach(b => {
+                lista += `
+                    <li>
+                        <strong>${b.nombre}</strong> - ${b.direccion}
+                        <button class="btn btn-secondary" onclick="confirmarLote('${nombre}', ${b.id})">
+                            Donar aquí
+                        </button>
+                    </li>`;
+            });
+            lista += "</ul>";
+            document.getElementById("bancos-disponibles").innerHTML = lista;
+
+        } catch (error) {
+            document.getElementById("respuesta-donante").innerText = "Error de conexión con el servidor";
+        }
+    });
+
+    // Paso 2: Confirmar lote en banco elegido manualmente
+    async function confirmarLote(nombre, bancoId) {
+        const items = [];
+        document.querySelectorAll("#items-container .item").forEach(div => {
+            const tipo = div.querySelector(".tipo").value;
+            const cantidad = parseInt(div.querySelector(".cantidad").value);
+            items.push({ tipo, cantidad });
+        });
+
+        try {
+            const res = await fetch("/donar/lote", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nombre: nombre,
+                    banco_id: bancoId,
+                    donaciones: items
+                })
+            });
+
+            const data = await res.json();
+            document.getElementById("respuesta-donante").innerText = data.mensaje || "Error al registrar donación";
+
+            if (data.mensaje && data.mensaje.includes("Lote de donaciones registrado")) {
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 2000);
+            }
+        } catch (error) {
+            document.getElementById("respuesta-donante").innerText = "Error de conexión con el servidor";
+        }
+    }
+
+    // Paso 3: Confirmar lote automáticamente con algoritmo Greedy (versión creativa)
+    async function confirmarLoteGreedy() {
+        const nombre = document.getElementById("nombre").value;
+        const items = [];
+        document.querySelectorAll("#items-container .item").forEach(div => {
+            const tipo = div.querySelector(".tipo").value;
+            const cantidad = parseInt(div.querySelector(".cantidad").value);
+            items.push({ tipo, cantidad });
+        });
+
+        try {
+            const res = await fetch("/donar/greedy", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nombre: nombre,
+                    donaciones: items
+                })
+            });
+
+            const data = await res.json();
+            let salida = "<h3>✨ Distribución de tus donaciones ✨</h3>";
+            data.resultados.forEach(r => {
+                if (r.banco) {
+                    salida += `<p>🛒 Tus <strong>${r.cantidad} ${r.tipo}</strong> fueron enviados al <strong>${r.banco}</strong> en ${r.direccion}, listos para ayudar a muchas familias.</p>`;
+                } else {
+                    salida += `<p>⚠️ Los <strong>${r.cantidad} ${r.tipo}</strong> no pudieron ser asignados: ${r.mensaje}.</p>`;
+                }
+            });
+            document.getElementById("respuesta-donante").innerHTML = salida;
+
+        } catch (error) {
+            document.getElementById("respuesta-donante").innerText = "Error de conexión con el servidor";
+        }
+    }
+    </script>
+</body>
+</html>

@@ -1,16 +1,35 @@
-from models import Banco, Inventario
+from models import Banco
+from sqlalchemy.orm import Session
 
-def crear_banco(db, banco):
-    nuevo = Banco(
-        nombre=banco.nombre,
-        direccion=banco.direccion,
-        capacidad_total=banco.capacidad_total
+
+def crear_banco(db, banco_data):
+    categorias_default = {
+        "frutas": {"capacidad": banco_data.capacidad_total, "usado": 0},
+        "granos": {"capacidad": banco_data.capacidad_total, "usado": 0},
+        "enlatados": {"capacidad": banco_data.capacidad_total, "usado": 0},
+    }
+
+    nuevo_banco = Banco(
+        nombre=banco_data.nombre,
+        direccion=banco_data.direccion,
+        capacidad_total=banco_data.capacidad_total,
+        categorias=categorias_default
     )
-    db.add(nuevo)
+    db.add(nuevo_banco)
     db.commit()
-    db.refresh(nuevo)
-    return nuevo
+    db.refresh(nuevo_banco)
+    return nuevo_banco
 
-def limpiar_inventario(db, banco_id):
-    db.query(Inventario).filter(Inventario.banco_id == banco_id).delete()
+
+
+def limpiar_inventario(db: Session, banco_id: int):
+    banco = db.query(Banco).filter(Banco.id == banco_id).first()
+    if not banco:
+        return None
+
+    for categoria in banco.categorias.values():
+        categoria["usado"] = 0
+
+    banco.categorias = banco.categorias
     db.commit()
+    return banco
