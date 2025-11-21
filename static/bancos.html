@@ -33,6 +33,24 @@
         </table>
     </section>
 
+    <!-- 🔴 FORMULARIO APARTE PARA LIMPIAR INVENTARIO POR ID -->
+    <section class="container" style="margin-top:20px;">
+        <h3>Limpiar Inventario de Banco</h3>
+        <form id="form-limpiar">
+            <input type="number" id="banco-id-limpiar" placeholder="ID del banco a limpiar">
+            <button type="submit">🧹 Limpiar Inventario</button>
+        </form>
+    </section>
+
+    <!-- 🔴 FORMULARIO APARTE PARA ELIMINAR BANCO POR ID -->
+    <section class="container" style="margin-top:20px;">
+        <h3>Eliminar Banco</h3>
+        <form id="form-eliminar">
+            <input type="number" id="banco-id-eliminar" placeholder="ID del banco a eliminar">
+            <button type="submit">❌ Eliminar Banco</button>
+        </form>
+    </section>
+
     <script>
         async function cargarBancos() {
             const res = await fetch("/api/bancos/listar");
@@ -42,7 +60,6 @@
             tabla.innerHTML = "";
 
             bancos.forEach(b => {
-                // Construir tabla interna para categorías
                 let categoriasHTML = "<table class='subtabla'><tr><th>Tipo</th><th>Capacidad</th><th>Usado</th><th>Disponible</th></tr>";
                 for (const tipo in b.categorias) {
                     const cat = b.categorias[tipo];
@@ -68,6 +85,9 @@
                             <button class="btn btn-danger" onclick="limpiarBanco(${b.id})">
                                 🧹 Limpiar Inventario
                             </button>
+                            <button class="btn btn-warning" onclick="eliminarBanco(${b.id})">
+                                ❌ Eliminar Banco
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -75,20 +95,70 @@
         }
 
         async function limpiarBanco(id) {
-            if (!confirm("¿Seguro que quieres limpiar el inventario de este banco?")) return;
+            if (!confirm(`¿Seguro que quieres limpiar el inventario del banco con ID ${id}?`)) return;
 
-            const res = await fetch(`/bancos/${id}/limpiar`, {
-                method: "DELETE"
-            });
+            const res = await fetch(`/bancos/${id}/limpiar`, { method: "DELETE" });
             const data = await res.json();
             alert(data.mensaje);
-
-            // Recargar tabla
             cargarBancos();
         }
 
+        async function eliminarBanco(id) {
+            if (!confirm(`¿Seguro que quieres eliminar el banco con ID ${id}?`)) return;
+
+            const res = await fetch(`/bancos/eliminar/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            alert(data.mensaje);
+            cargarBancos();
+        }
+
+        // Limpiar inventario desde formulario aparte
+        const formLimpiar = document.getElementById("form-limpiar");
+        if (formLimpiar) {
+            formLimpiar.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const id = document.getElementById("banco-id-limpiar").value;
+                if (!id) {
+                    alert("Por favor ingresa el ID del banco a limpiar");
+                    return;
+                }
+                await limpiarBanco(id);
+            });
+        }
+
+        // Eliminar banco desde formulario aparte
+        const formEliminar = document.getElementById("form-eliminar");
+        if (formEliminar) {
+            formEliminar.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const id = document.getElementById("banco-id-eliminar").value;
+                if (!id) {
+                    alert("Por favor ingresa el ID del banco a eliminar");
+                    return;
+                }
+                await eliminarBanco(id);
+            });
+        }
+
         cargarBancos();
+        async function limpiarBanco(id) {
+    if (!confirm(`¿Seguro que quieres limpiar el inventario del banco con ID ${id}?`)) return;
+
+    const res = await fetch(`/bancos/${id}/limpiar`, { method: "DELETE" });
+    const data = await res.json();
+    alert(data.mensaje);
+    cargarBancos();
+}
+
+async function eliminarBanco(id) {
+    if (!confirm(`¿Seguro que quieres eliminar el banco con ID ${id}?`)) return;
+
+    const res = await fetch(`/bancos/eliminar/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    alert(data.mensaje);
+    cargarBancos();
+}
+
     </script>
-    <script src="/static/app.js"></script>
 </body>
 </html>

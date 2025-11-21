@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List
+
 class UsuarioBase(BaseModel):
     nombre: str
     correo: str
@@ -24,12 +25,12 @@ class BancoCreate(BancoBase):
 
 
 class DonacionBase(BaseModel):
-    alimento: str
+    nombre: str          # nombre del donante o referencia
     cantidad: int
-    tipo: str  # frutas, granos, enlatados
+    tipo: str            # frutas, granos, enlatados
 
 class DonacionCreate(DonacionBase):
-    usuario_id: int
+    pass   # ❌ ya no pedimos banco_id
 
 
 class DonacionItem(BaseModel):
@@ -39,4 +40,4 @@ class DonacionItem(BaseModel):
 class LoteDonacion(BaseModel):
     nombre: str
     donaciones: List[DonacionItem]
-    banco_id: int
+    # ❌ eliminamos banco_id, el sistema asigna el banco automáticamente

@@ -1,18 +1,19 @@
 # --- Framework principal ---
-fastapi==0.115.0        # Framework web para construir APIs
-uvicorn[standard]==0.32.0  # Servidor ASGI para correr FastAPI
+fastapi       # Framework web para construir APIs
+uvicorn[standard] # Servidor ASGI para correr FastAPI
 
 # --- Base de datos ---
-SQLAlchemy==2.0.36      # ORM para manejar la base de datos
-alembic==1.13.2         # Migraciones de base de datos
+SQLAlchemy    # ORM para manejar la base de datos
+alembic        # Migraciones de base de datos
 
 # --- Validación y modelos ---
-pydantic==2.9.2         # Validación de datos
-pydantic-core==2.23.4   # Núcleo de Pydantic
+pydantic   # Validación de datos
+pydantic-core  # Núcleo de Pydantic
 
 # --- Extras útiles ---
-python-dotenv==1.0.1    # Para manejar variables de entorno (.env)
-requests==2.32.3        # Para hacer peticiones HTTP si lo necesitas
+python-dotenv   # Para manejar variables de entorno (.env)
+requests       # Para hacer peticiones HTTP si lo necesitas
 
 # --- Testing (opcional, si usas pytest) ---
-pytest==8.3.3
+pytest
+psycopg2-binary

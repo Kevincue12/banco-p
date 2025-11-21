@@ -6,8 +6,7 @@ if (formDonante) {
 
         const data = {
             nombre: document.getElementById("nombre").value,
-            alimento: document.getElementById("tipo").value,
-            tipo: document.getElementById("tipo").value,
+            tipo: document.getElementById("tipo").value,   // ya no necesitas "alimento" duplicado
             cantidad: parseInt(document.getElementById("cantidad").value),
             usuario_id: 1
         };
@@ -48,15 +47,41 @@ if (formBanco) {
 }
 
 
-// Limpiar inventario
+// Limpiar inventario por nombre
 const formLimpiar = document.getElementById("form-limpiar");
 if (formLimpiar) {
     formLimpiar.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const id = document.getElementById("banco-id").value;
+        const nombre = document.getElementById("banco-nombre-limpiar").value; // 👈 usa nombre, no id
+        if (!nombre) {
+            alert("Por favor ingresa el nombre del banco a limpiar");
+            return;
+        }
 
-        const res = await fetch(`/bancos/${id}/limpiar`, {
+        const res = await fetch(`/bancos/${encodeURIComponent(nombre)}/limpiar`, {
+            method: "DELETE"
+        });
+
+        const r = await res.json();
+        document.getElementById("respuesta-prop").innerText = r.mensaje;
+    });
+}
+
+
+// Eliminar banco por nombre
+const formEliminar = document.getElementById("form-eliminar");
+if (formEliminar) {
+    formEliminar.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const nombre = document.getElementById("banco-nombre-eliminar").value;
+        if (!nombre) {
+            alert("Por favor ingresa el nombre del banco a eliminar");
+            return;
+        }
+
+        const res = await fetch(`/bancos/eliminar/${encodeURIComponent(nombre)}`, {
             method: "DELETE"
         });
 

@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # URL convertida al formato correcto
-DATABASE_URL = "postgresql+psycopg2://u3iv3oogobm7bmrk10th:Wu2WZKF7UfHlUXb8N1md@bnxncp4yiyknwxikvfo2-postgresql.services.clever-cloud.com:7799/bnxncp4yiyknwxikvfo2"
+DATABASE_URL = "postgresql://ujkrbxwszomq7zktmlvk:0OyZZGFZqgPCGBjongZmjPOWIO4Q2s@bxkx37ek1k8qveeaer4f-postgresql.services.clever-cloud.com:5432/bxkx37ek1k8qveeaer4f"
 
 # Crear el motor de conexión
 engine = create_engine(DATABASE_URL)
