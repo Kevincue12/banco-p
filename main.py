@@ -44,16 +44,20 @@ def registrar_donacion_endpoint(donacion: DonacionCreate, db: Session = Depends(
 
     for banco in bancos:
         categorias = banco.categorias or {}
-        if donacion.tipo in categorias:
-            capacidad = categorias[donacion.tipo].get("capacidad", 0)
-            usado = categorias[donacion.tipo].get("usado", 0)
+
+        # 👇 Normaliza el tipo aquí
+        tipo = donacion.tipo.strip().lower()
+
+        if tipo in categorias:
+            capacidad = categorias[tipo].get("capacidad", 0)
+            usado = categorias[tipo].get("usado", 0)
             disponible = capacidad - usado
 
             if disponible >= donacion.cantidad:
                 # Crear donación
                 nueva_donacion = models.Donacion(
                     nombre=donacion.nombre,
-                    tipo=donacion.tipo,
+                    tipo=tipo,  # 👈 ya normalizado
                     cantidad=donacion.cantidad,
                     banco_id=banco.id
                 )
@@ -61,22 +65,22 @@ def registrar_donacion_endpoint(donacion: DonacionCreate, db: Session = Depends(
                 db.commit()
                 db.refresh(nueva_donacion)
 
-                # Actualizar inventario (mutable: detecta la mutación)
-                categorias[donacion.tipo]["usado"] = usado + donacion.cantidad
+                # Actualizar inventario
+                categorias[tipo]["usado"] = usado + donacion.cantidad
+                banco.categorias = dict(categorias)
                 db.add(banco)
                 db.commit()
                 db.refresh(banco)
 
                 return {
                     "mensaje": f"Donación registrada en {banco.nombre}",
-                    "categoria": donacion.tipo,
+                    "categoria": tipo,
                     "direccion": banco.direccion,
-                    "espacio_usado": banco.categorias[donacion.tipo]["usado"],
-                    "espacio_total": banco.categorias[donacion.tipo]["capacidad"]
+                    "espacio_usado": banco.categorias[tipo]["usado"],
+                    "espacio_total": banco.categorias[tipo]["capacidad"]
                 }
 
     return {"mensaje": "No hay bancos disponibles para esta donación"}
-
 
 @app.post("/donar/opciones")
 def opciones_donacion(donacion: DonacionCreate, db: Session = Depends(get_db)):

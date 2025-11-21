@@ -6,7 +6,7 @@ if (formDonante) {
 
         const data = {
             nombre: document.getElementById("nombre").value,
-            tipo: document.getElementById("tipo").value,   // ya no necesitas "alimento" duplicado
+            tipo: document.getElementById("tipo").value.trim().toLowerCase(), // normalizamos tipo
             cantidad: parseInt(document.getElementById("cantidad").value),
             usuario_id: 1
         };
@@ -19,6 +19,9 @@ if (formDonante) {
 
         const r = await res.json();
         document.getElementById("respuesta").innerText = r.mensaje;
+
+        // 👇 refresca la tabla de bancos para ver inventario actualizado
+        cargarBancos();
     });
 }
 
@@ -43,49 +46,58 @@ if (formBanco) {
 
         const r = await res.json();
         document.getElementById("respuesta-prop").innerText = r.mensaje || "Banco registrado.";
+
+        // 👇 refresca la tabla de bancos
+        cargarBancos();
     });
 }
 
 
-// Limpiar inventario por nombre
+// Limpiar inventario por ID
 const formLimpiar = document.getElementById("form-limpiar");
 if (formLimpiar) {
     formLimpiar.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const nombre = document.getElementById("banco-nombre-limpiar").value; // 👈 usa nombre, no id
-        if (!nombre) {
-            alert("Por favor ingresa el nombre del banco a limpiar");
+        const id = document.getElementById("banco-id-limpiar").value; // 👈 ahora usamos id
+        if (!id) {
+            alert("Por favor ingresa el ID del banco a limpiar");
             return;
         }
 
-        const res = await fetch(`/bancos/${encodeURIComponent(nombre)}/limpiar`, {
+        const res = await fetch(`/bancos/${encodeURIComponent(id)}/limpiar`, {
             method: "DELETE"
         });
 
         const r = await res.json();
         document.getElementById("respuesta-prop").innerText = r.mensaje;
+
+        // 👇 refresca la tabla
+        cargarBancos();
     });
 }
 
 
-// Eliminar banco por nombre
+// Eliminar banco por ID
 const formEliminar = document.getElementById("form-eliminar");
 if (formEliminar) {
     formEliminar.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const nombre = document.getElementById("banco-nombre-eliminar").value;
-        if (!nombre) {
-            alert("Por favor ingresa el nombre del banco a eliminar");
+        const id = document.getElementById("banco-id-eliminar").value; // 👈 ahora usamos id
+        if (!id) {
+            alert("Por favor ingresa el ID del banco a eliminar");
             return;
         }
 
-        const res = await fetch(`/bancos/eliminar/${encodeURIComponent(nombre)}`, {
+        const res = await fetch(`/bancos/eliminar/${encodeURIComponent(id)}`, {
             method: "DELETE"
         });
 
         const r = await res.json();
         document.getElementById("respuesta-prop").innerText = r.mensaje;
+
+        // 👇 refresca la tabla
+        cargarBancos();
     });
 }
